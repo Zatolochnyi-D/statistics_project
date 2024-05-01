@@ -10,10 +10,10 @@ class DataAnalyzer:
 
     def validate_input_data(self, data) -> None:
         if type(data) != list:
-            raise TypeError("Data Analyzer expects list of floats or integers")
+            raise TypeError("Data Analyzer expects list of floats")
         for el in data:
             if type(el) != float:
-                raise TypeError("Data Analyzer expects list of floats or integers")
+                raise TypeError("Data Analyzer expects list of floats")
 
     def find_range(self) -> None:
         self.range = self.data[-1] - self.data[0]
