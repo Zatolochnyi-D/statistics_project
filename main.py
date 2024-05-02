@@ -11,24 +11,26 @@ if __name__ == '__main__':
 
     # select column
     # convert to floats
-    data = [float(el) for el in parser.extract_column(4, True)]
+    data = [float(el) for el in parser.extract_column(5, True)]
 
     # pick 100 elements randomly
-    # put into analyzer and analyze
     picker = DataPicker(data)
-    analyzer = DataAnalyzer()
-    analyzer.set_data(picker.pick_random(100))
-    analyzer.analyze_data()
+    data = picker.pick_random(100)
 
+    # put into analyzer and analyze
     # print results    
+    analyzer = DataAnalyzer()
     print("Результат аналізу вибірки з реальних даних:")
-    print(analyzer.get_data_representation(10, 1))
-    print(analyzer.get_range())
+    analyzer.set_data(data)
+    print(analyzer.get_data_representation(10, 0))
 
+    analyzer.analyze_data()
+    print(analyzer.get_range())
+    
     # repeat with made up data
     print("Результат аналізу вибірки нормального розподілу:")
     data = sorted([round(r.normalvariate() * 9.0, 5) for i in range(100)])
     analyzer.set_data(data)
     analyzer.analyze_data()
-    print(analyzer.get_data_representation(10, 5))
+    print(analyzer.get_data_representation(5, 5))
     print(analyzer.get_range())
