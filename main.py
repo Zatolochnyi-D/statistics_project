@@ -1,7 +1,6 @@
 from data_analyzer import DataAnalyzer
 from data_picker import DataPicker
 from file_parser import CsvFileParser
-import random as r
 
 if __name__ == '__main__':
     # algorithm of assignment 1
@@ -25,12 +24,4 @@ if __name__ == '__main__':
     print(analyzer.get_data_representation(10, 0))
 
     analyzer.analyze_data()
-    print(analyzer.get_range())
-    
-    # repeat with made up data
-    print("Результат аналізу вибірки нормального розподілу:")
-    data = sorted([round(r.normalvariate() * 9.0, 5) for i in range(100)])
-    analyzer.set_data(data)
-    analyzer.analyze_data()
-    print(analyzer.get_data_representation(5, 5))
     print(analyzer.get_range())
