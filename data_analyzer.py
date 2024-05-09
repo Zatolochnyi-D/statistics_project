@@ -1,27 +1,38 @@
+import math
+
 class DataAnalyzer:
 
     def __init__(self,) -> None:
         self.data = None
         self.range = None
+        self.interval_count = None
+        self.interval_size = None
     
-    def set_data(self, data: list[float]) -> None:
-        self.validate_input_data(data)
-        self.data = sorted(data)
+    # main functionality
 
-    def validate_input_data(self, data) -> None:
+    def set_data(self, data: list[float]) -> None:
         if type(data) != list:
             raise TypeError("Data Analyzer expects list of floats")
         for el in data:
             if type(el) != float:
                 raise TypeError("Data Analyzer expects list of floats")
+        self.data = sorted(data)
 
-    def find_range(self) -> None:
-        self.range = self.data[-1] - self.data[0]
-
+    # run all analyzind methods
     def analyze_data(self) -> None:
-        self.find_range()
+        self.find_size()
 
-    def get_data_representation(self, elements_per_line: int, digits_after_point_number: int) -> str:
+    # analysis methods
+
+    # find range, number of intervals and width of each interval
+    def find_size(self) -> None:
+        self.range = self.data[-1] - self.data[0]
+        self.interval_count = math.ceil(1 + 3.3221 * math.log10(len(self.data)))
+        self.interval_size = self.range / self.interval_count
+
+    # get methods
+
+    def get_data_representation_string(self, elements_per_line: int, digits_after_point_number: int) -> str:
         result = ""
         i = 0
         for element in self.data:
@@ -34,6 +45,3 @@ class DataAnalyzer:
                 result += '\n'
 
         return result
-
-    def get_range(self) -> int | float:
-        return self.range
