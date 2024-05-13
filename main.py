@@ -20,7 +20,7 @@ if __name__ == '__main__':
     parser.read_file(file_path)
 
     # select column and convert to floats
-    data = [float(el) for el in parser.extract_column(1, False)]
+    data = [float(el) for el in parser.extract_column(1, True)]
 
     # pick 100 elements randomly
     picker = DataPicker(data)
@@ -31,9 +31,11 @@ if __name__ == '__main__':
     analyzer = DataAnalyzer()
     print("Результат аналізу вибірки з реальних даних:")
     analyzer.set_data(data)
-    print(analyzer.get_data_representation_string(10, 0))
+    print(analyzer.get_data_representation_string(10, 1))
 
     analyzer.analyze_data()
     print(analyzer.range)
     print(analyzer.interval_count)
     print(analyzer.interval_size)
+
+    print(analyzer.get_interval_table_representation())
