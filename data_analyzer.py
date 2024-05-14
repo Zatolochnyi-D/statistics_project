@@ -3,57 +3,67 @@ import tabulate as tb
 
 class DataAnalyzer:
 
-    def __init__(self,) -> None:
-        self.data = None
-        self.range = None
-        self.interval_count = None
-        self.interval_size = None
-        self.interval_names = ["id", "working_time", "count", "frequency", "cumultive_count", "cumultive_frequency", "intervals_center"]
-        self.intervals = []
+    def __init__(self, data: list[float]) -> None:
+        self.data = sorted(data)
+
+        self.range: float
+        self.intervals_count: int
+        self.interval_size: float
+
+        self.intervals_table = IntervalsTable()
+        self.intervals_table.set_headers(["Номер", "Інтервал", "Центр інтервалу", "Частота", "Частість", "Накопичена частота", "Накопичена частість"])
+
+        # TODO
+        self.average = None
+        self.dispersion = None
+        self.average_quadratic_deviation = None
+        self.variation_coeffitient = None
+        self.asymmetry_coeffitient = None
+        self.excess_coeefitient = None
     
     # main functionality
-
-    def set_data(self, data: list[float]) -> None:
-        if type(data) != list:
-            raise TypeError("Data Analyzer expects list of floats")
-        for el in data:
-            if type(el) != float:
-                raise TypeError("Data Analyzer expects list of floats")
-        self.data = sorted(data)
 
     # run all analyzind methods
     def analyze_data(self) -> None:
         self.find_size()
         self.find_intervals_data()
+        self.find_characteristics()
 
     # analysis methods
 
     # find range, number of intervals and width of each interval
     def find_size(self) -> None:
         self.range = self.data[-1] - self.data[0]
-        self.interval_count = math.ceil(1 + 3.3221 * math.log10(len(self.data)))
-        self.interval_size = self.range / self.interval_count
+        self.intervals_count = math.ceil(1 + 3.3221 * math.log10(len(self.data)))
+        self.interval_size = self.range / self.intervals_count
 
     # form interval table
     def find_intervals_data(self) -> None:
         half_size = self.interval_size / 2 # half of original interval size, used for shifting
-        corrected_size = self.interval_size * (1 + 1 / self.interval_count) # corrected interval size, used because of intervals shifting
+        corrected_size = self.interval_size * (1 + 1 / self.intervals_count) # corrected interval size, used because of intervals shifting
 
         cumulative_count = 0 
         cumulative_frequency = 0
-        for i in range(self.interval_count):
+        for i in range(self.intervals_count):
             lower_bound = self.data[0] - half_size + corrected_size * i
             upper_bound = lower_bound + corrected_size
-            working_time = f'{lower_bound} - {upper_bound}'
+            interval = f'{lower_bound} - {upper_bound}'
+            interval_center = (lower_bound + upper_bound) / 2
             count = len([i for i in self.data if lower_bound <= i < upper_bound])
             frequency = count / len(self.data)
-            cumulative_count = sum([i[2] for i in self.intervals]) + count
-            cumulative_frequency = sum([i[3] for i in self.intervals]) + frequency
-            interval_center = round((lower_bound + upper_bound) / 2, 3)
+            cumulative_count += count
+            cumulative_frequency += frequency
 
-            self.intervals.append([i, working_time, count, frequency, cumulative_count, cumulative_frequency, interval_center])
-        whole_interval = f'{round(self.data[0] - half_size, 3)} - {round(self.data[-1] + half_size, 3)}'
-        self.intervals.append(["-", whole_interval, len(self.data), 1.0, cumulative_count, cumulative_frequency, "-"])
+            line = [i, interval, interval_center, count, frequency, cumulative_count, cumulative_frequency]
+            self.intervals_table.append_to_body(line)
+
+        whole_interval = f'{self.data[0] - half_size} - {upper_bound}'
+        footers = ["-", whole_interval,  "-", len(self.data), 1.0, cumulative_count, cumulative_frequency]
+        self.intervals_table.set_footers(footers)
+
+    def find_characteristics(self) -> None:
+        # self.average = sum([i[2] for i in range(1, len(self.intervals) - 1)])
+        pass
 
     # get methods
 
@@ -71,5 +81,24 @@ class DataAnalyzer:
 
         return result
     
-    def get_interval_table_representation(self) -> str:
-        return tb.tabulate(self.intervals, self.interval_names)
+
+class IntervalsTable:
+    def __init__(self) -> None:
+        self.headers: list = []
+        self.body: list[list] = []
+        self.footers: list = []
+
+    def set_headers(self, headers: list) -> None:
+        self.headers = headers
+
+    def append_to_body(self, line: list) -> None:
+        self.body.append(line)
+
+    def set_footers(self, footers: list) -> None:
+        self.footers = footers
+
+    def extract_column(self, index: int) -> list:
+        return [line[index] for line in self.body]
+    
+    def get_table_representation(self) -> str:
+        return tb.tabulate([*self.body, self.footers], self.headers)
