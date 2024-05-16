@@ -1,5 +1,6 @@
 import math
 import tabulate as tb
+import matplotlib.pyplot as plt
 
 class DataAnalyzer:
 
@@ -87,6 +88,16 @@ class DataAnalyzer:
                 result += '\n'
 
         return result
+    
+    def plot_graphics(self) -> None:
+        figure, axis = plt.subplots(2, 2)
+        axis[0, 0].plot(self.intervals_table.extract_column(2), self.intervals_table.extract_column(3))
+        axis[0, 0].set_title("Полігон частот")
+        axis[0, 1].bar(self.intervals_table.extract_column(2), self.intervals_table.extract_column(3), width = self.interval_size * 0.95)
+        axis[0, 1].set_title("Гістограма")
+        axis[1, 0].plot(self.intervals_table.extract_column(2), self.intervals_table.extract_column(6))
+        axis[1, 0].set_title("Кумулята")
+        plt.show()
     
 
 class IntervalsTable:

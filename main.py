@@ -45,3 +45,4 @@ if __name__ == '__main__':
     print(f"Коефіцієнт варіації: {analyzer.variation_coeffitient}")
     print(f"Коефіцієнт асиметрії: {analyzer.asymmetry_coeffitient}")
     print(f"Ексцес: {analyzer.excess_coeefitient}")
+    analyzer.plot_graphics()
