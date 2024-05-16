@@ -27,7 +27,7 @@ if __name__ == '__main__':
     data = picker.pick_random(100)
 
     # put into analyzer and analyze
-    # print results    
+    # print results
     analyzer = DataAnalyzer(data)
     print("Результат аналізу вибірки з реальних даних:")
     print(analyzer.get_data_representation_string(10, 1))
@@ -39,4 +39,9 @@ if __name__ == '__main__':
 
     print(analyzer.intervals_table.get_table_representation())
 
-    print("Average: " + analyzer.average)
+    print(f"Середнє: {analyzer.average}")
+    print(f"Дисперсія: {analyzer.dispersion}")
+    print(f"Середнє квадратичне відхилення: {analyzer.average_quadratic_deviation}")
+    print(f"Коефіцієнт варіації: {analyzer.variation_coeffitient}")
+    print(f"Коефіцієнт асиметрії: {analyzer.asymmetry_coeffitient}")
+    print(f"Ексцес: {analyzer.excess_coeefitient}")

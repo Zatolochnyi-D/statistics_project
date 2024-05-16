@@ -14,12 +14,12 @@ class DataAnalyzer:
         self.intervals_table.set_headers(["Номер", "Інтервал", "Центр інтервалу", "Частота", "Частість", "Накопичена частота", "Накопичена частість"])
 
         # TODO
-        self.average = None
-        self.dispersion = None
-        self.average_quadratic_deviation = None
-        self.variation_coeffitient = None
-        self.asymmetry_coeffitient = None
-        self.excess_coeefitient = None
+        self.average: float
+        self.dispersion: float
+        self.average_quadratic_deviation: float
+        self.variation_coeffitient: float
+        self.asymmetry_coeffitient: float
+        self.excess_coeefitient: float
     
     # main functionality
 
@@ -61,9 +61,16 @@ class DataAnalyzer:
         footers = ["-", whole_interval,  "-", len(self.data), 1.0, cumulative_count, cumulative_frequency]
         self.intervals_table.set_footers(footers)
 
+    # find average, dispersion and deviation, variation, asymmetry and excess
     def find_characteristics(self) -> None:
-        # self.average = sum([i[2] for i in range(1, len(self.intervals) - 1)])
-        pass
+        averages = self.intervals_table.extract_column(2)
+        self.average = sum(averages) / len(averages)
+        counts = self.intervals_table.extract_column(3)
+        self.dispersion = sum([math.pow(averages[i] - self.average, 2) * counts[i] for i in range(len(averages))]) / len(self.data)
+        self.average_quadratic_deviation = math.sqrt(self.dispersion)
+        self.variation_coeffitient = self.average_quadratic_deviation / self.average
+        self.asymmetry_coeffitient = sum([math.pow(averages[i] - self.average, 3) * counts[i] for i in range(len(averages))]) / (len(self.data) * math.pow(self.average_quadratic_deviation, 3))
+        self.excess_coeefitient = sum([math.pow(averages[i] - self.average, 4) * counts[i] for i in range(len(averages))]) / (len(self.data) * math.pow(self.average_quadratic_deviation, 4)) - 3
 
     # get methods
 
