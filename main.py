@@ -46,3 +46,4 @@ if __name__ == '__main__':
     print(f"Коефіцієнт асиметрії: {analyzer.asymmetry_coeffitient}")
     print(f"Ексцес: {analyzer.excess_coeefitient}")
     analyzer.plot_graphics()
+    print(f"Мода: {analyzer.mode}")

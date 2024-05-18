@@ -2,6 +2,16 @@ import math
 import tabulate as tb
 import matplotlib.pyplot as plt
 
+def line_intersection(line1: tuple[tuple[float]], line2: tuple[tuple[float]]) -> tuple[float]:
+    a1, b1 = (line1[1][1] - line1[0][1]) / (line1[1][0] - line1[0][0]), line1[0][1] - (line1[0][0] * (line1[1][1] - line1[0][1])) / (line1[1][0] - line1[0][0])
+    a2, b2 = (line2[1][1] - line2[0][1]) / (line2[1][0] - line2[0][0]), line2[0][1] - (line2[0][0] * (line2[1][1] - line2[0][1])) / (line2[1][0] - line2[0][0])
+
+    x = (b2 - b1) / (a1 - a2)
+    y = (a1 * b2 - a2 * b1) / (a1 - a2)
+
+    return (x, y)
+
+
 class DataAnalyzer:
 
     def __init__(self, data: list[float]) -> None:
@@ -21,6 +31,8 @@ class DataAnalyzer:
         self.variation_coeffitient: float
         self.asymmetry_coeffitient: float
         self.excess_coeefitient: float
+        self.mode: float
+        self.median: float
     
     # main functionality
 
@@ -91,12 +103,30 @@ class DataAnalyzer:
     
     def plot_graphics(self) -> None:
         figure, axis = plt.subplots(2, 2)
-        axis[0, 0].plot(self.intervals_table.extract_column(2), self.intervals_table.extract_column(3))
+        centers = self.intervals_table.extract_column(2)
+        counts = self.intervals_table.extract_column(3)
+
+        axis[0, 0].plot(centers, counts)
         axis[0, 0].set_title("Полігон частот")
-        axis[0, 1].bar(self.intervals_table.extract_column(2), self.intervals_table.extract_column(3), width = self.interval_size * 0.95)
+
+        
+        index_of_max_count = counts.index(max(counts))
+        bar_width = self.interval_size * 0.95
+        axis[0, 1].bar(centers, counts, width = bar_width)
+        x1, y1 = centers[index_of_max_count] - bar_width / 2, counts[index_of_max_count]
+        x2, y2 = centers[index_of_max_count + 1] - bar_width / 2, counts[index_of_max_count + 1]
+        x3, y3 = centers[index_of_max_count] + bar_width / 2, counts[index_of_max_count]
+        x4, y4 = centers[index_of_max_count - 1] + bar_width / 2, counts[index_of_max_count - 1]
+        axis[0, 1].plot([x1, x2], [y1, y2], color="red")
+        axis[0, 1].plot([x3, x4], [y3, y4], color="red")
+        intersection = line_intersection(((x1, y1), (x2, y2)), ((x3, y3), (x4, y4)))
+        self.mode = intersection[0]
+        axis[0, 1].vlines(x=self.mode, ymin = 0, ymax = intersection[1], color="red", linestyle="dashed")
         axis[0, 1].set_title("Гістограма")
-        axis[1, 0].plot(self.intervals_table.extract_column(2), self.intervals_table.extract_column(6))
+
+        axis[1, 0].plot(centers, self.intervals_table.extract_column(6))
         axis[1, 0].set_title("Кумулята")
+
         plt.show()
     
 
