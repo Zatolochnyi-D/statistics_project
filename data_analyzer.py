@@ -11,6 +11,8 @@ def line_intersection(line1: tuple[tuple[float]], line2: tuple[tuple[float]]) ->
 
     return (x, y)
 
+def is_even(number: int) -> bool:
+    return True if (number % 2 == 0) else False
 
 class DataAnalyzer:
 
@@ -24,7 +26,6 @@ class DataAnalyzer:
         self.intervals_table = IntervalsTable()
         self.intervals_table.set_headers(["Номер", "Інтервал", "Центр інтервалу", "Частота", "Частість", "Накопичена частота", "Накопичена частість"])
 
-        # TODO
         self.average: float
         self.dispersion: float
         self.average_quadratic_deviation: float
@@ -105,11 +106,11 @@ class DataAnalyzer:
         figure, axis = plt.subplots(2, 2)
         centers = self.intervals_table.extract_column(2)
         counts = self.intervals_table.extract_column(3)
+        cumulative_frequency = self.intervals_table.extract_column(6)
 
         axis[0, 0].plot(centers, counts)
         axis[0, 0].set_title("Полігон частот")
 
-        
         index_of_max_count = counts.index(max(counts))
         bar_width = self.interval_size * 0.95
         axis[0, 1].bar(centers, counts, width = bar_width)
@@ -124,7 +125,17 @@ class DataAnalyzer:
         axis[0, 1].vlines(x=self.mode, ymin = 0, ymax = intersection[1], color="red", linestyle="dashed")
         axis[0, 1].set_title("Гістограма")
 
-        axis[1, 0].plot(centers, self.intervals_table.extract_column(6))
+        axis[1, 0].plot(centers, cumulative_frequency)
+        lower_index = 0
+        while True:
+            if (cumulative_frequency[lower_index + 1] > 0.5):
+                break
+            lower_index += 1
+        cumulate_line = ((centers[lower_index], cumulative_frequency[lower_index]), (centers[lower_index + 1], cumulative_frequency[lower_index + 1]))
+        median_line = ((0, 0.5), (centers[-1], 0.5))
+        self.median = line_intersection(cumulate_line, median_line)[0]
+        axis[1, 0].vlines(x=self.median, ymax=0.5, ymin=0, color="red", linestyle="dashed")
+        axis[1, 0].hlines(y=0.5, xmin=centers[0], xmax=self.median, color="red", linestyle="dashed")
         axis[1, 0].set_title("Кумулята")
 
         plt.show()

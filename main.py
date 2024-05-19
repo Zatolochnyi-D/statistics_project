@@ -47,3 +47,4 @@ if __name__ == '__main__':
     print(f"Ексцес: {analyzer.excess_coeefitient}")
     analyzer.plot_graphics()
     print(f"Мода: {analyzer.mode}")
+    print(f"Медіана: {analyzer.median}")
