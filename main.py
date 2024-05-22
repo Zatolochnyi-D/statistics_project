@@ -3,16 +3,6 @@ from data_picker import DataPicker
 from file_parser import CsvFileParser
 
 if __name__ == '__main__':
-    # step 1
-    # select file
-    # read file
-    # select column
-    # pick values randomly
-
-    # step 2
-    # analyze
-
-
     # algorithm of assignment 1
     # read file with data
     file_path = "data.csv"
@@ -47,4 +37,7 @@ if __name__ == '__main__':
     print(f"Ексцес: {analyzer.excess_coeefitient}")
     print(f"Мода: {analyzer.mode}")
     print(f"Медіана: {analyzer.median}")
+    print(f"Оцінка теоретичного середнього: {analyzer.t_average}")
+    print(f"Оцінка теоретичної дисперсії: {analyzer.t_dispersion}")
+    print(f"Парабола залежності: {analyzer.parabolic_parameters[0]}x^2 + {analyzer.parabolic_parameters[1]}x + {analyzer.parabolic_parameters[2]}")
     analyzer.show_plot()

@@ -1,6 +1,7 @@
 import math
 import tabulate as tb
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 
 def line_intersection(a: tuple[tuple[float]], b: tuple[tuple[float]]) -> tuple[float]:
     a1, b1 = (a[1][1] - a[0][1]) / (a[1][0] - a[0][0]), a[0][1] - (a[0][0] * (a[1][1] - a[0][1])) / (a[1][0] - a[0][0])
@@ -32,6 +33,9 @@ class DataAnalyzer:
         self.mode: float
         self.median: float
         self.plots: plt.Figure
+        self.t_average: float
+        self.t_dispersion: float
+        self.parabolic_parameters: tuple[float]
     
     # main functionality
 
@@ -40,7 +44,9 @@ class DataAnalyzer:
         self.find_size()
         self.find_intervals_data()
         self.find_characteristics()
-        self.plot_graphics()
+        self.plot()
+        self.find_theoretical_parameters()
+        self.find_dependence()
 
     # analysis methods
 
@@ -86,7 +92,7 @@ class DataAnalyzer:
         self.excess_coeefitient = sum([math.pow(averages[i] - self.average, 4) * counts[i] for i in range(len(averages))]) / (len(self.data) * math.pow(self.average_quadratic_deviation, 4)) - 3
 
     # plot required plots, find median and mode
-    def plot_graphics(self) -> None:
+    def plot(self) -> None:
         self.plots, axis = plt.subplots(2, 2)
         centers = self.intervals_table.extract_column(2)
         counts = self.intervals_table.extract_column(3)
@@ -121,6 +127,26 @@ class DataAnalyzer:
         axis[1, 0].vlines(x=self.median, ymax=0.5, ymin=0, color="red", linestyle="dashed")
         axis[1, 0].hlines(y=0.5, xmin=centers[0], xmax=self.median, color="red", linestyle="dashed")
         axis[1, 0].set_title("Кумулята")
+
+    def find_theoretical_parameters(self) -> None:
+        self.t_average, self.t_dispersion = norm.fit(self.data)
+
+    def find_dependence(self) -> None:
+        n = len(self.data)
+        centers = self.intervals_table.extract_column(2)
+        frequencies = self.intervals_table.extract_column(4)
+        # TODO replace ** with math.pow
+        x_power_2_y = sum([math.pow(x, 2) * y for x, y in zip(centers, frequencies)])
+        x_power_2 = sum([math.pow(x, 2) for x in centers])
+        y = sum([y for y in frequencies])
+        x_power_4 = sum([math.pow(x, 4) for x in centers])
+        xy = sum([x * y for x, y in zip(centers, frequencies)])
+
+        a = (n * x_power_2_y - x_power_2 * y) / (n * x_power_4 - math.pow(x_power_2, 2))
+        b = xy / x_power_2
+        c = (x_power_4 * y - x_power_2 * x_power_2_y) / (n * x_power_4 - math.pow(x_power_2, 2))
+
+        self.parabolic_parameters = (a, b, c)
    
     # get methods
 
