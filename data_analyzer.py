@@ -2,17 +2,14 @@ import math
 import tabulate as tb
 import matplotlib.pyplot as plt
 
-def line_intersection(line1: tuple[tuple[float]], line2: tuple[tuple[float]]) -> tuple[float]:
-    a1, b1 = (line1[1][1] - line1[0][1]) / (line1[1][0] - line1[0][0]), line1[0][1] - (line1[0][0] * (line1[1][1] - line1[0][1])) / (line1[1][0] - line1[0][0])
-    a2, b2 = (line2[1][1] - line2[0][1]) / (line2[1][0] - line2[0][0]), line2[0][1] - (line2[0][0] * (line2[1][1] - line2[0][1])) / (line2[1][0] - line2[0][0])
+def line_intersection(a: tuple[tuple[float]], b: tuple[tuple[float]]) -> tuple[float]:
+    a1, b1 = (a[1][1] - a[0][1]) / (a[1][0] - a[0][0]), a[0][1] - (a[0][0] * (a[1][1] - a[0][1])) / (a[1][0] - a[0][0])
+    a2, b2 = (b[1][1] - b[0][1]) / (b[1][0] - b[0][0]), b[0][1] - (b[0][0] * (b[1][1] - b[0][1])) / (b[1][0] - b[0][0])
 
     x = (b2 - b1) / (a1 - a2)
     y = (a1 * b2 - a2 * b1) / (a1 - a2)
 
     return (x, y)
-
-def is_even(number: int) -> bool:
-    return True if (number % 2 == 0) else False
 
 class DataAnalyzer:
 
@@ -34,6 +31,7 @@ class DataAnalyzer:
         self.excess_coeefitient: float
         self.mode: float
         self.median: float
+        self.plots: plt.Figure
     
     # main functionality
 
@@ -42,6 +40,7 @@ class DataAnalyzer:
         self.find_size()
         self.find_intervals_data()
         self.find_characteristics()
+        self.plot_graphics()
 
     # analysis methods
 
@@ -86,24 +85,9 @@ class DataAnalyzer:
         self.asymmetry_coeffitient = sum([math.pow(averages[i] - self.average, 3) * counts[i] for i in range(len(averages))]) / (len(self.data) * math.pow(self.average_quadratic_deviation, 3))
         self.excess_coeefitient = sum([math.pow(averages[i] - self.average, 4) * counts[i] for i in range(len(averages))]) / (len(self.data) * math.pow(self.average_quadratic_deviation, 4)) - 3
 
-    # get methods
-
-    def get_data_representation_string(self, elements_per_line: int, digits_after_point_number: int) -> str:
-        result = ""
-        i = 0
-        for element in self.data:
-            if element >= 0:
-                result += " "
-            result += f"{element:.{digits_after_point_number}f}\t"
-            i += 1
-            if i == elements_per_line:
-                i = 0
-                result += '\n'
-
-        return result
-    
+    # plot required plots, find median and mode
     def plot_graphics(self) -> None:
-        figure, axis = plt.subplots(2, 2)
+        self.plots, axis = plt.subplots(2, 2)
         centers = self.intervals_table.extract_column(2)
         counts = self.intervals_table.extract_column(3)
         cumulative_frequency = self.intervals_table.extract_column(6)
@@ -137,7 +121,24 @@ class DataAnalyzer:
         axis[1, 0].vlines(x=self.median, ymax=0.5, ymin=0, color="red", linestyle="dashed")
         axis[1, 0].hlines(y=0.5, xmin=centers[0], xmax=self.median, color="red", linestyle="dashed")
         axis[1, 0].set_title("Кумулята")
+   
+    # get methods
 
+    def get_data_representation_string(self, elements_per_line: int, digits_after_point_number: int) -> str:
+        result = ""
+        i = 0
+        for element in self.data:
+            if element >= 0:
+                result += " "
+            result += f"{element:.{digits_after_point_number}f}\t"
+            i += 1
+            if i == elements_per_line:
+                i = 0
+                result += '\n'
+
+        return result
+
+    def show_plot(self) -> None:
         plt.show()
     
 
