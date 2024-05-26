@@ -26,3 +26,23 @@ def inverse_laplace_function(x, accuracy = 0.001) -> float:
             a = c
 
     return c
+
+def division_method_equation_solve(func, borders: tuple[float] | list[float],  accuracy: float = 0.001) -> float:
+    left, right = borders
+    center: float
+    iterations_count = math.ceil(math.log2((right - left) / accuracy))
+
+    for i in range(iterations_count):
+        center = (right - left) / 2 + left
+        value_at_left = func(left)
+        value_at_right = func(right)
+        value_at_center = func(center)
+
+        if value_at_center * value_at_left < 0:
+            right = center
+        elif value_at_center * value_at_right < 0:
+            left = center
+        else:
+            return center
+
+    return center

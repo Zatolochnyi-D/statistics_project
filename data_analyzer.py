@@ -1,97 +1,8 @@
 import math
 import tabulate as tb
 import matplotlib.pyplot as plt
-from scipy.stats import norm
-from scipy.stats import t as student
-from scipy.stats import t as student
-from scipy.stats import chi2
+from scipy.stats import norm, chi2, t as student
 from functions import *
-
-# class GeneralDataAnalyzer:
-#     def __init__(self, data: list[float]) -> None:
-#         self.data = sorted(data)
-#         self.length = len(self.data)
-
-#         self.range: float
-#         self.intervals_count: int
-#         self.interval_size: float
-
-#         # self.intervals_table = IntervalsTable()
-#         # self.intervals_table.set_headers(["Номер", "Інтервал", "Центр інтервалу", "Частота", "Частість", "Накопичена частота", "Накопичена частість"])
-
-#         # self.average: float
-#         # self.dispersion: float
-#         # self.average_quadratic_deviation: float
-#         # self.variation_coeffitient: float
-#         # self.asymmetry_coeffitient: float
-#         # self.excess_coeefitient: float
-#         # self.mode: float
-#         # self.median: float
-#         # self.plots: plt.Figure
-#         # self.t_average: float
-#         # self.t_dispersion: float
-#         # self.parabolic_parameters: tuple[float]
-
-#     def find_intervals_parameters(self) -> None:
-#         self.range = self.data[-1] - self.data[0]
-#         self.intervals_count = math.ceil(1 + 3.3221 * math.log10(len(self.data)))
-#         self.interval_size = self.range / self.intervals_count
-
-#     def fill_intervals_table(self) -> None:
-#         half_size = self.interval_size / 2 # half of original interval size, used for shifting
-#         corrected_size = self.interval_size * (1 + 1 / self.intervals_count) # corrected interval size, used because of intervals shifting
-
-#         cumulative_count = 0 
-#         cumulative_frequency = 0
-#         for i in range(self.intervals_count):
-#             lower_bound = self.data[0] - half_size + corrected_size * i
-#             upper_bound = lower_bound + corrected_size
-#             interval = f'{round(lower_bound} - {upper_bound}'
-#             interval_center = (lower_bound + upper_bound) / 2
-#             count = len([i for i in self.data if lower_bound <= i < upper_bound])
-#             frequency = count / self.length
-#             cumulative_count += count
-#             cumulative_frequency += frequency
-
-#             line = [i, interval, interval_center, count, frequency, cumulative_count, cumulative_frequency]
-#             self.intervals_table.append_to_body(line)
-
-#         whole_interval = f'{self.data[0] - half_size} - {upper_bound}'
-#         footers = ["-", whole_interval,  "-", cumulative_count, cumulative_frequency, cumulative_count, cumulative_frequency]
-#         self.intervals_table.set_footers(footers)    
-
-    
-
-
-# class GeneralDataAnalyzerReader:
-#     def __init__(self, analyzer: GeneralDataAnalyzer) -> None:
-#         self.analyzer = analyzer
-#         self.data_grid: list[list]
-
-#     def get_data_representation_string(self, elements_per_row: int) -> str:
-#         if self.data_grid == None:
-#             self.data_grid = []
-#             for i in range(math.ceil(self.analyzer.length / elements_per_row)):
-#                 self.data_grid.append([])
-
-#             x, y = 0
-#             for el in self.analyzer.data:
-#                 self.data_grid[y].append(el)
-#                 x += 1
-#                 if x > elements_per_row - 1:
-#                     x = 0
-#                     y += 1
-
-#         return tb.tabulate(self.data_grid)
-
-
-# # class 
-
-
-# class NormalDistributedDataAnalyzer:
-#     pass
-
-
 
 class DataAnalyzer:
 
@@ -285,6 +196,8 @@ class DataAnalyzer:
             else:
                 self.hipothesis0_D_rejected = False
             self.d_crit = (t_d_crit, 'inf')
+
+        # TODO find critical area of dispersion
 
         # scipy.stats.t.ppf - Student's distribution   
         # to find criteria, use alpha / 2

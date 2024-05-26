@@ -10,13 +10,14 @@ class App:
     def start(self) -> None:
         self.clear()
 
-        print("######################################################")
-        print("#                                                    #")
-        print("#    Оберіть опцію:                                  #")
-        print("#    1 - Використати тестовий сценарій               #")
-        print("#    2 - Використати ручний сценарій                 #")
-        print("#                                                    #")
-        print("######################################################")
+        print("###########################################")
+        print("#                                         #")
+        print("#    Оберіть опцію:                       #")
+        print("#    1 - Використати тестовий сценарій    #")
+        print("#    2 - Використати ручний сценарій      #")
+        print("#    3 - Вийти                            #")
+        print("#                                         #")
+        print("###########################################")
         
         while True:
             option = input("Ведіть потрібну опцію: ")
@@ -26,7 +27,7 @@ class App:
                 print("Неправильний ввід, спробуйте ще раз.")
                 print()
                 continue
-            if final_option not in [1, 2]:
+            if final_option not in [1, 2, 3]:
                 print("Оберіть опцію зі списку.")
                 print()
                 continue
@@ -36,6 +37,8 @@ class App:
             self.run_test_scenario()
         elif final_option == 2:
             self.run_manual_scenario()
+        elif final_option == 3:
+            exit()
 
     def run_test_scenario(self) -> None:
         self.clear()

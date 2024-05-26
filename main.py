@@ -6,7 +6,7 @@ from app import App
 console_app = App()
 
 if __name__ == '__main__':
-    console_app.start()
+    # console_app.start()
     # algorithm of assignment 1
     # read file with data
     file_path = "data.csv"
