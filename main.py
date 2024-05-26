@@ -1,9 +1,12 @@
 from data_analyzer import DataAnalyzer
 from data_picker import DataPicker
 from file_parser import CsvFileParser
-import functions
+from app import App
+
+console_app = App()
 
 if __name__ == '__main__':
+    console_app.start()
     # algorithm of assignment 1
     # read file with data
     file_path = "data.csv"
