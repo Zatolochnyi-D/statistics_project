@@ -1,6 +1,7 @@
 from data_analyzer import DataAnalyzer
 from data_picker import DataPicker
 from file_parser import CsvFileParser
+import functions
 
 if __name__ == '__main__':
     # algorithm of assignment 1
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     # print results
     analyzer = DataAnalyzer(data)
     print("Результат аналізу вибірки з реальних даних:")
-    print(analyzer.get_data_representation_string(10, 1))
+    print(analyzer.get_data_representation_string(10))
 
     analyzer.analyze_data()
     print(analyzer.range)
@@ -40,4 +41,13 @@ if __name__ == '__main__':
     print(f"Оцінка теоретичного середнього: {analyzer.t_average}")
     print(f"Оцінка теоретичної дисперсії: {analyzer.t_dispersion}")
     print(f"Парабола залежності: {analyzer.parabolic_parameters[0]}x^2 + {analyzer.parabolic_parameters[1]}x + {analyzer.parabolic_parameters[2]}")
+    print(f"Довірчий інтервал для середнього з надійністю 0.95: {analyzer.average_confidence_interval}")
+    print(f"Довірчий інтервал для дисперсії з надійністю 0.95: {analyzer.dispersion_confidence_interval}")
+    print("H0: a = 75, D = 49, H1: a = вибіркове середнє, D = =вибіркова дисперсія")
+    print("alpha = 0.05")
+    print(f"Гіпотеза про a = 75 є вірна: {not analyzer.hipothesis0_a_rejected}")
+    print(f"Гіпотеза про D = 49 є вірна: {not analyzer.hipothesis0_D_rejected}")
+    print(f"Критична область для середнього: {analyzer.average_crit}")
+    print(f"Потужність критерію для середнього: {analyzer.a_criteria_power}")
+    print(f"Критична область для дисперсії: {analyzer.d_crit}")
     analyzer.show_plot()

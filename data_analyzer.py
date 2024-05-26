@@ -2,7 +2,10 @@ import math
 import tabulate as tb
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-from functions import line_intersection
+from scipy.stats import t as student
+from scipy.stats import t as student
+from scipy.stats import chi2
+from functions import *
 
 # class GeneralDataAnalyzer:
 #     def __init__(self, data: list[float]) -> None:
@@ -94,6 +97,7 @@ class DataAnalyzer:
 
     def __init__(self, data: list[float]) -> None:
         self.data = sorted(data)
+        self.length = len(self.data)
 
         self.range: float
         self.intervals_count: int
@@ -125,6 +129,8 @@ class DataAnalyzer:
         self.plot()
         self.find_theoretical_parameters()
         self.find_dependence()
+        self.find_confidence_intervals()
+        self.test_parameter_hypothesis()
 
     # analysis methods
 
@@ -147,7 +153,7 @@ class DataAnalyzer:
             interval = f'{lower_bound} - {upper_bound}'
             interval_center = (lower_bound + upper_bound) / 2
             count = len([i for i in self.data if lower_bound <= i < upper_bound])
-            frequency = count / len(self.data)
+            frequency = count / self.length
             cumulative_count += count
             cumulative_frequency += frequency
 
@@ -225,22 +231,82 @@ class DataAnalyzer:
         c = (x_power_4 * y - x_power_2 * x_power_2_y) / (n * x_power_4 - math.pow(x_power_2, 2))
 
         self.parabolic_parameters = (a, b, c)
-   
+
+    def find_confidence_intervals(self) -> None:
+        standard_error_deviation = math.sqrt(self.dispersion / self.length)
+        gamma = 0.95
+        t = inverse_laplace_function(gamma)
+        delta = t * standard_error_deviation
+        self.average_confidence_interval = (self.average - delta, self.average + delta)
+
+        # TODO add xi^2 distribution. It's used when k = n - 1 <= 30
+        k = self.length - 1
+        xi1 = 0.5 * math.pow(math.sqrt(2 * k - 1) - t, 2)
+        xi2 = 0.5 * math.pow(math.sqrt(2 * k - 1) + t, 2)
+        self.dispersion_confidence_interval = (self.dispersion * self.length / xi2, self.dispersion * self.length / xi1)
+
+    def test_parameter_hypothesis(self) -> None:
+        alpha = 0.05
+        possible_average = 75
+        possible_dispersion = 49
+
+        t_a = (self.average - possible_average) / self.average_quadratic_deviation * math.sqrt(self.length - 1)
+        t_a_c = student.ppf(1 - alpha, self.length - 1)
+        if abs(t_a) > t_a_c:
+            self.hipothesis0_a_rejected = True
+        else:
+            self.hipothesis0_a_rejected = False
+        coef = self.average_quadratic_deviation / math.sqrt(self.length - 1) * t_a_c
+        if self.average > possible_average:
+            x_crit = possible_average + coef
+            self.average_crit = (x_crit, "inf")
+            t_x_crit = (x_crit - self.average) * math.sqrt(self.length - 1) / self.average_quadratic_deviation
+            self.a_criteria_power = 0.5 - 0.5 * (student.cdf(t_x_crit, self.length - 1) - student.cdf(-t_x_crit, self.length - 1))
+        else:
+            x_crit = possible_average - coef
+            self.average_crit = ("-inf", x_crit)
+            t_x_crit = (x_crit - self.average) * math.sqrt(self.length - 1) / self.average_quadratic_deviation
+            self.a_criteria_power = student.cdf(t_x_crit, self.length - 1)
+
+        xi2 = self.length * self.dispersion / possible_dispersion
+        if possible_dispersion > self.dispersion:
+            xi2_c = chi2.isf(alpha, self.length - 1)
+            t_d_crit = self.dispersion * self. length / xi2_c
+            if xi2 > xi2_c:
+                self.hipothesis0_D_rejected = True
+            else:
+                self.hipothesis0_D_rejected = False
+            self.d_crit = ('-inf', t_d_crit)
+        else:
+            xi2_c = chi2.isf(1 - alpha, self.length - 1)
+            t_d_crit = self.dispersion * self. length / xi2_c
+            if xi2 < xi2_c:
+                self.hipothesis0_D_rejected = True
+            else:
+                self.hipothesis0_D_rejected = False
+            self.d_crit = (t_d_crit, 'inf')
+
+        # scipy.stats.t.ppf - Student's distribution   
+        # to find criteria, use alpha / 2
+
+
+
     # get methods
 
-    def get_data_representation_string(self, elements_per_line: int, digits_after_point_number: int) -> str:
-        result = ""
-        i = 0
-        for element in self.data:
-            if element >= 0:
-                result += " "
-            result += f"{element:.{digits_after_point_number}f}\t"
-            i += 1
-            if i == elements_per_line:
-                i = 0
-                result += '\n'
+    def get_data_representation_string(self, elements_per_row: int) -> str:
+        data_grid = []
+        for i in range(math.ceil(self.length / elements_per_row)):
+            data_grid.append([])
 
-        return result
+        x = y = 0
+        for el in self.data:
+            data_grid[y].append(el)
+            x += 1
+            if x > elements_per_row - 1:
+                x = 0
+                y += 1
+
+        return tb.tabulate(data_grid)
 
     def show_plot(self) -> None:
         plt.show()
