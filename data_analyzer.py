@@ -42,6 +42,7 @@ class DataAnalyzer:
         self.find_dependence()
         self.find_confidence_intervals()
         self.test_parameter_hypothesis()
+        self.test_for_normal_distribution()
 
     # analysis methods
 
@@ -61,7 +62,7 @@ class DataAnalyzer:
         for i in range(self.intervals_count):
             lower_bound = self.data[0] - half_size + corrected_size * i
             upper_bound = lower_bound + corrected_size
-            interval = f'{lower_bound} - {upper_bound}'
+            interval = [lower_bound, upper_bound]
             interval_center = (lower_bound + upper_bound) / 2
             count = len([i for i in self.data if lower_bound <= i < upper_bound])
             frequency = count / self.length
@@ -71,7 +72,7 @@ class DataAnalyzer:
             line = [i, interval, interval_center, count, frequency, cumulative_count, cumulative_frequency]
             self.intervals_table.append_to_body(line)
 
-        whole_interval = f'{self.data[0] - half_size} - {upper_bound}'
+        whole_interval = [self.data[0] - half_size, upper_bound]
         footers = ["-", whole_interval,  "-", len(self.data), 1.0, cumulative_count, cumulative_frequency]
         self.intervals_table.set_footers(footers)
 
@@ -197,10 +198,53 @@ class DataAnalyzer:
                 self.hipothesis0_D_rejected = False
             self.d_crit = (t_d_crit, 'inf')
 
+        # find length with defined alpha and 1 - beta
+        def_alpha = 0.05
+        def_beta = 0.025
+        func_to_analyze = lambda n: self.dispersion / math.pow(self.average - possible_average, 2) * math.pow(student.ppf(1 - def_alpha, n - 1) + student.ppf(1 - def_beta,n - 1), 2) - n
+        self.required_length = division_method_equation_solve(func_to_analyze, [-10, 10])
+
         # TODO find critical area of dispersion
 
         # scipy.stats.t.ppf - Student's distribution   
         # to find criteria, use alpha / 2
+
+    def test_for_normal_distribution(self) -> None:
+        average = 75
+        dispersion = 49
+        std = math.sqrt(dispersion)
+
+        counts = self.intervals_table.extract_column(3)
+        to_merge_begin = []
+        to_merge_end = []
+
+        for i in range(len(counts)):
+            if counts[i] < 5:
+                to_merge_begin.append(i)
+                continue
+            break
+
+        for i in range(len(counts)):
+            if counts[-(i + 1)] < 5:
+                to_merge_end.append(-(i + 1))
+                continue
+            break
+
+        counts = [sum(counts[0:len(to_merge_begin)]), *counts[len(to_merge_begin):len(counts) - len(to_merge_end)], sum(counts[len(counts) - len(to_merge_end): len(counts)])]
+        intervals = self.intervals_table.extract_column(1)
+        intervals = [[intervals[0][0], intervals[len(to_merge_begin) - 1][1]], *intervals[len(to_merge_begin):len(intervals) - len(to_merge_end)], [intervals[-len(to_merge_end)][0], intervals[-1][1]]]
+        print(intervals)
+        
+        t_possibilities = [norm.cdf((i[1] - average) / std) - norm.cdf((i[0] - average) / std) for i in intervals]
+        t_counts = [p * self.length for p in t_possibilities]
+        chi = sum([math.pow(c - t_c, 2) / t_c for c, t_c in zip(counts, t_counts)])
+        k = len(counts) - 3
+        chi_crit = chi2.isf(0.05, k)
+
+        if chi < chi_crit:
+            self.is_normal_dist = True
+        else:
+            self.is_normal_dist = False
 
 
 
