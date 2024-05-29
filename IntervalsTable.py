@@ -1,6 +1,7 @@
 import tabulate as tb
 
 class IntervalsTable:
+    
     def __init__(self, headers: list) -> None:
         self.headers = headers
         self.body: list[list] = []

@@ -5,8 +5,6 @@ from Analyzers import *
 
 # Console application. Handles input/output.
 class App:
-    def __init__(self) -> None:
-        pass
 
     def clear(self) -> None:
         os.system('cls' if os.name == 'nt' else 'clear')
@@ -31,6 +29,9 @@ class App:
         input('Натисніть "Enter" щоб продовжити...')
 
     def start(self) -> None:
+        self.run_test_scenario()
+
+    def start2(self) -> None:
         self.clear()
 
         print("Оберіть опцію:")
@@ -50,11 +51,6 @@ class App:
     def run_test_scenario(self) -> None:
         self.clear()
 
-        # Assume unknown data is read. Then not all columns have consistent type and there may be no float columns to analyze.
-        # Possible problems:
-        # - Inconsistent types in columns
-        # - No columns with floats
-        # - Table have less than 5 columns
         print('Читаємо файл "data.csv".')
         file_path = "data.csv"
         reader = CsvFileReader()

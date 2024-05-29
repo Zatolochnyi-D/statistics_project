@@ -6,6 +6,7 @@ from Functions import *
 from scipy.stats import norm, chi2, t as student
 
 class GeneralAnalyzer:
+    
     def __init__(self, data: list[float]) -> None:
         self.data = sorted(data)
         self.n = len(self.data)
@@ -130,6 +131,7 @@ class GeneralAnalyzer:
 
 
 class NormalDistAnalyzer:
+
     def __init__(self, analyzer: GeneralAnalyzer) -> None:
         self.general_analyzer = analyzer
 
@@ -240,6 +242,7 @@ class NormalDistAnalyzer:
 
 
 class CorrelationAnalyzer:
+
     def __init__(self, analyzer1: GeneralAnalyzer, analyzer2: GeneralAnalyzer) -> None:
         self.analyzer1 = analyzer1
         self.analyzer2 = analyzer2
