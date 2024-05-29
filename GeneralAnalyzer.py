@@ -88,24 +88,6 @@ class GeneralAnalyzer:
             intersection = line_intersection(line1, line2)
             self.modes.append(intersection[0])
             axis[0, 1].vlines(x=self.modes[i], ymin = 0, ymax = intersection[1], color="red", linestyle="dashed")
-
-        # x1_1, y1_1 = centers[index_of_max_count] - bar_width / 2, counts[index_of_max_count]
-        # if index_of_max_count + 1 < len(counts):
-        #     x2_1, y2_1 = centers[index_of_max_count + 1] - bar_width / 2, counts[index_of_max_count + 1]
-        # else:
-        #     x2_1, y2_1 = centers[index_of_max_count] + self.interval_size - bar_width / 2, 0
-        # line1 = ((x1_1, y1_1), (x2_1, y2_1))
-        # x1_2, y1_2 = centers[index_of_max_count] + bar_width / 2, counts[index_of_max_count]
-        # if index_of_max_count - 1 > -1:
-        #     x2_2, y2_2 = centers[index_of_max_count - 1] + bar_width / 2, counts[index_of_max_count - 1]
-        # else:
-        #     x2_2, y2_2 = centers[index_of_max_count] - self.interval_size + bar_width / 2, 0
-        # line2 = ((x1_2, y1_2), (x2_2, y2_2))
-        # axis[0, 1].plot([x1_1, x2_1], [y1_1, y2_1], color="red")
-        # axis[0, 1].plot([x1_2, x2_2], [y1_2, y2_2], color="red")
-        # intersection = line_intersection(line1, line2)
-        # self.mode = intersection[0]
-        # axis[0, 1].vlines(x=self.mode, ymin = 0, ymax = intersection[1], color="red", linestyle="dashed")
         
         axis[1, 0].plot(centers, cumulative_frequency)
         axis[1, 0].set_title("Кумулята")

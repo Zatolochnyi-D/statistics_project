@@ -91,7 +91,6 @@ class App:
         print(f"Середнє: a = {general_analyzer.average}")
         print(f"Дисперсія: s² = {general_analyzer.dispersion}")
         print(f"Середнє квадратичне відхилення: s = {general_analyzer.std}")
-        # print(f"Моди: Mo1 = {general_analyzer.mode}")
         print(f"Моди: {str.join(" ", [f"Mo{i + 1} = {mode}" for i, mode in enumerate(general_analyzer.modes)])}")
         print(f"Медіана: Me = {general_analyzer.median}")
         print(f"Коефіцієнт варіації: v = {round(general_analyzer.variation * 100, 2)}%")
