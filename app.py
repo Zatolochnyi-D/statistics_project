@@ -1,7 +1,7 @@
 import os
 from FileReader import CsvFileReader
 from DataPicker import DataPicker
-from GeneralAnalyzer import GeneralAnalyzer
+from Analyzers import *
 
 # Console application. Handles input/output.
 class App:
@@ -105,6 +105,44 @@ class App:
             print("Мінливість вибірки є значною. Можливі неточності.")
         print()
         self.pause()
+        print()
+
+        print("Аналіз продовжено як для нормального розподілу.")
+        normal_analyzer = general_analyzer.get_concrete_analyzer(0)
+        print("Методом максимальної правдоподібності знайдені наступні параметри розподілу:")
+        normal_analyzer.find_parameters_estimation()
+        print(f"Оцінка середнього: {normal_analyzer.estimate_average}")
+        print(f"Оцінка середнього квадратичного відхилення: {normal_analyzer.estimate_std}")
+        print()
+
+        print("Для пошуку теоретичної залежності між значеннями та частістю використана парабола (оскільки розподіл нормальний).")
+        print("Знайдена парабола:")
+        normal_analyzer.find_possible_dependence()
+        print("y = {}x^2 + {}x + {}".format(*normal_analyzer.possible_dependence_parameteres))
+
+        print("Довірчі інтервали з довірчою ймовірністю 𝜸 = 0.95:")
+        normal_analyzer.find_confidence_intervals(0.95)
+        print("Для генерального середнього: [{}, {}]".format(*normal_analyzer.average_confidence_interval))
+        print("Для генеральної дисперсії: [{}, {}]".format(*normal_analyzer.dispersion_confidence_interval))
+        print()
+
+        print("Гіпотеза про параметри розподілу.")
+        print("H0: a = 75, 𝜎 = 49.")
+        print(f"H1: a = {general_analyzer.average}, 𝜎 = {general_analyzer.dispersion} (тобто отримані середнє та дисперсія).")
+        print("Перевірка відбувається на рівні значущості 𝛼 = 0.05.")
+        normal_analyzer.test_parameters_hypothesis(0.05, 75, 49)
+        print(f"Для середнього гіпотеза H0{"" if normal_analyzer.hipothesis0_a_rejected else " не"} відкинута.")
+        print(f"Для дисперсії гіпотеза H0{"" if normal_analyzer.hipothesis0_d_rejected else " не"} відкинута.")
+        print()
+
+        print("Критична область для середнього: ({}, {})".format(*normal_analyzer.average_critical_range))
+        print(f"Потужність критерію для середнього: {normal_analyzer.average_criteria_power}")
+        print("Критична область для дисперсії: ({}, {})".format(*normal_analyzer.dispersion_critical_range))
+
+        print("Побудувати критичні області та знайти потужності критеріїв")
+        print("Знайти обсяг вибірки, який потрібен, аби забезпечити вказаний рівень значущості та потужність (нехай alpha = 0.05, beta = 0.025)")
+        print("Висунути гіпотезу про закон розподілу (нормальний)")
+        print("Перевірити на рівні alpha = 0.05")
 
 
     def run_manual_scenario(self) -> None:
