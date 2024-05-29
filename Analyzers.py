@@ -140,11 +140,14 @@ class NormalDistAnalyzer:
         self.average_confidence_interval: tuple[float]
         self.dispersion_confidence_interval: tuple[float]
 
-        self.hipothesis0_a_rejected: bool
+        self.hipothesis0_parameter_rejected: bool
         self.hipothesis0_d_rejected: bool
         self.average_critical_range: tuple
         self.average_criteria_power: float
         self.dispersion_critical_range: tuple
+        self.required_n: int
+
+        self.is_normal_dist: bool
 
     def find_parameters_estimation(self) -> None:
         (a, s) = norm.fit(self.general_analyzer.data, method="MLE")
@@ -184,18 +187,10 @@ class NormalDistAnalyzer:
             xi2 = 0.5 * math.pow(math.sqrt(2 * k - 1) + t, 2)
             self.dispersion_confidence_interval = (round(ns2 / xi2, 10), round(ns2 / xi1, 10))
 
-    def test_parameters_hypothesis(self, alpha, possible_average, possible_dispersion) -> None:
+    def test_parameter_hypothesis(self, alpha, possible_average) -> None:
         average_criteria = (self.general_analyzer.average - possible_average) / self.general_analyzer.std * math.sqrt(self.general_analyzer.n - 1)
         average_critical = student.ppf(1 - alpha, self.general_analyzer.n - 1)
-        self.hipothesis0_a_rejected = abs(average_criteria) > average_critical
-
-        dispersion_criteria = self.general_analyzer.n * self.general_analyzer.dispersion / possible_dispersion
-        if self.general_analyzer.dispersion > possible_dispersion:
-            dispersion_critical = chi2.isf(alpha, self.general_analyzer.n - 1)
-            self.hipothesis0_d_rejected = dispersion_criteria > dispersion_critical
-        else:
-            dispersion_critical = chi2.isf(1 - alpha, self.general_analyzer.n - 1)
-            self.hipothesis0_d_rejected = dispersion_criteria < dispersion_critical
+        self.hipothesis0_parameter_rejected = abs(average_criteria) > average_critical
 
         coeffitient = self.general_analyzer.std / math.sqrt(self.general_analyzer.n - 1) * average_critical
         if self.general_analyzer.average > possible_average:
@@ -207,33 +202,37 @@ class NormalDistAnalyzer:
             self.average_critical_range = ("-inf", average_critical_point)
             self.average_criteria_power = round(norm.cdf(average_critical - (possible_average - self.general_analyzer.average) / self.general_analyzer.std * math.sqrt(self.general_analyzer.n - 1)), 10)
 
-        # TODO find required n for requested alpha and beta
+    def find_n_from_alpha_and_beta(self, possible_average, alpha, beta) -> None:
+        coeffitient = self.general_analyzer.dispersion / math.pow(self.general_analyzer.average - possible_average, 2)
+        func_to_search = lambda x: math.pow(student.ppf(1 - alpha, x - 1) + student.ppf(1 - beta, x - 1), 2) * coeffitient - x
+        self.required_n = int(math.ceil(division_method_equation_solve(func_to_search, (2, 10000))))
 
+    def test_for_normal_distribution(self, possible_average, possible_dispersion, alpha) -> None:
+        possible_std = math.sqrt(possible_dispersion)
+
+        counts = self.general_analyzer.intervals_table.extract_column(3)
+        intervals = self.general_analyzer.intervals_table.extract_column(1)
+        while True:
+            if counts[0] < 5:
+                counts[1] += counts[0]
+                counts = counts[1:]
+                intervals[1] += intervals[0]
+                intervals = intervals[1:]
+                continue
+            break
+        while True:
+            if counts[-1] < 5:
+                counts[-2] += counts[-1]
+                counts = counts[:-2]
+                intervals[-2] += intervals[-1]
+                intervals = intervals[:-2]
+                continue
+            break
         
+        t_possibilities = [norm.cdf((i[1] - possible_average) /possible_std) - norm.cdf((i[0] - possible_average) / possible_std) for i in intervals]
+        t_counts = [p * self.general_analyzer.n for p in t_possibilities]
+        chi = sum([math.pow(c - t_c, 2) / t_c for c, t_c in zip(counts, t_counts)])
+        k = len(counts) - 3
+        chi_crit = chi2.isf(alpha, k)
 
-    def find_critical_intervals(self, possible_average, possible_dispersion) -> None:
-        # average_critical_point = possible_average +
-        pass
-
-        # coef = self.average_quadratic_deviation / math.sqrt(self.length - 1) * t_a_c
-        # if self.average > possible_average:
-        #     x_crit = possible_average + coef
-        #     self.average_crit = (x_crit, "inf")
-        #     t_x_crit = (x_crit - self.average) * math.sqrt(self.length - 1) / self.average_quadratic_deviation
-        #     self.a_criteria_power = 0.5 - 0.5 * (student.cdf(t_x_crit, self.length - 1) - student.cdf(-t_x_crit, self.length - 1))
-        # else:
-        #     x_crit = possible_average - coef
-        #     self.average_crit = ("-inf", x_crit)
-        #     t_x_crit = (x_crit - self.average) * math.sqrt(self.length - 1) / self.average_quadratic_deviation
-        #     self.a_criteria_power = student.cdf(t_x_crit, self.length - 1)
-
-        # # find length with defined alpha and 1 - beta
-        # def_alpha = 0.05
-        # def_beta = 0.025
-        # func_to_analyze = lambda n: self.dispersion / math.pow(self.average - possible_average, 2) * math.pow(student.ppf(1 - def_alpha, n - 1) + student.ppf(1 - def_beta,n - 1), 2) - n
-        # self.required_length = division_method_equation_solve(func_to_analyze, [-10, 10])
-
-        # # TODO find critical area of dispersion
-
-        # # scipy.stats.t.ppf - Student's distribution   
-        # # to find criteria, use alpha / 2
+        self.is_normal_dist = chi < chi_crit
