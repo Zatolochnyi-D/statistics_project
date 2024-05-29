@@ -127,7 +127,8 @@ class GeneralAnalyzer:
         # elif type(analyzer_id) == int:
 
         return possible_analyzers[analyzer_id](self)
-    
+
+
 class NormalDistAnalyzer:
     def __init__(self, analyzer: GeneralAnalyzer) -> None:
         self.general_analyzer = analyzer
@@ -236,3 +237,99 @@ class NormalDistAnalyzer:
         chi_crit = chi2.isf(alpha, k)
 
         self.is_normal_dist = chi < chi_crit
+
+
+class CorrelationAnalyzer:
+    def __init__(self, analyzer1: GeneralAnalyzer, analyzer2: GeneralAnalyzer) -> None:
+        self.analyzer1 = analyzer1
+        self.analyzer2 = analyzer2
+
+        self.table_nij: list[list[int]]
+        self.table_upper: list[list]
+        self.table_left: list[list]
+        self.table_right: list[list]
+        self.table_lower: list[list]
+        self.table: list[list]
+
+    def build_2d_table(self) -> None:
+        self.table_nij = []
+        table1_intervals = self.analyzer1.intervals_table.extract_column(1)
+        table2_intervals = self.analyzer2.intervals_table.extract_column(1)
+        for i in range(self.analyzer2.intervals_count):
+            self.table_nij.append([])
+            for j in range(self.analyzer1.intervals_count):
+                self.table_nij[i].append(0)
+            for el1, el2 in zip(self.analyzer1.data, self.analyzer2.data):
+                if table2_intervals[i][0] < el2 < table2_intervals[i][1] :
+                    for j, interval in enumerate(table1_intervals):
+                        if interval[0] < el1 < interval[1]:
+                            self.table_nij[i][j] += 1
+
+        self.table_upper = [[], []]
+        table1_averages = self.analyzer1.intervals_table.extract_column(2)
+        for i in range(self.analyzer1.intervals_count):
+            self.table_upper[0].append([round(table1_intervals[i][0], 2), round(table1_intervals[i][1], 2)])
+            self.table_upper[1].append(round(table1_averages[i], 2))
+
+        table2_averages = self.analyzer2.intervals_table.extract_column(2)
+        self.table_left = [[], []]
+        for i in range(self.analyzer2.intervals_count):
+            self.table_left[0].append([round(table2_intervals[i][0], 2), round(table2_intervals[i][1], 2)])
+            self.table_left[1].append(round(table2_averages[i], 2))
+
+        self.table_right = [[], []]
+        for i in range(self.analyzer2.intervals_count):
+            self.table_right[0].append(sum(self.table_nij[i]))
+            self.table_right[1].append(sum([table1_averages[j] * self.table_nij[i][j] for j in range(self.analyzer1.intervals_count)]) / self.table_right[0][i])
+            self.table_right[1][i] = round(self.table_right[1][i], 2)
+
+        self.table_lower = [[], []]
+        for i in range(self.analyzer1.intervals_count):
+            self.table_lower[0].append(sum([self.table_nij[j][i] for j in range(self.analyzer2.intervals_count)]))
+            self.table_lower[1].append(sum([table2_averages[j] * self.table_nij[j][i] for j in range(self.analyzer2.intervals_count)]) / self.table_lower[0][i])
+            self.table_lower[1][i] = round(self.table_lower[1][i], 2)
+
+        self.table = []
+        self.table.append([])
+        for i in range(2):
+            self.table[0].append("v")
+        for i in range(self.analyzer1.intervals_count):
+            self.table[0].append(self.table_upper[0][i])
+        for i in range(2):
+            self.table[0].append("v")
+
+        self.table.append([])
+        self.table[1].append("Y")
+        self.table[1].append("y \ x")
+        for i in range(self.analyzer1.intervals_count):
+            self.table[1].append(self.table_upper[1][i])
+        self.table[1].append("nj")
+        self.table[1].append("av_x")
+
+        for i in range(self.analyzer2.intervals_count):
+            self.table.append([])
+            self.table[i+2].append(self.table_left[0][i])
+            self.table[i+2].append(self.table_left[1][i])
+            for j in range(self.analyzer1.intervals_count):
+                self.table[i+2].append(self.table_nij[i][j])
+            self.table[i+2].append(self.table_right[0][i])
+            self.table[i+2].append(self.table_right[1][i])
+
+        self.table.append([])
+        self.table[2 + self.analyzer2.intervals_count].append("v")
+        self.table[2 + self.analyzer2.intervals_count].append("ni")
+        for i in range(self.analyzer1.intervals_count):
+            self.table[2 + self.analyzer2.intervals_count].append(self.table_lower[0][i])
+        self.table[2 + self.analyzer2.intervals_count].append(self.analyzer1.n)
+        self.table[2 + self.analyzer2.intervals_count].append("v")
+
+        self.table.append([])
+        self.table[3 + self.analyzer2.intervals_count].append("v")
+        self.table[3 + self.analyzer2.intervals_count].append("av_y")
+        for i in range(self.analyzer1.intervals_count):
+            self.table[3 + self.analyzer2.intervals_count].append(self.table_lower[1][i])
+        self.table[3 + self.analyzer2.intervals_count].append("v")
+        self.table[3 + self.analyzer2.intervals_count].append("v")
+    
+    def get_table_representation(self) -> str:
+        return tb.tabulate(self.table, tablefmt="rounded_grid")

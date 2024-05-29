@@ -150,7 +150,58 @@ class App:
         print()
 
         print(f"Гіпотеза H0{" не" if normal_analyzer.is_normal_dist else ""} відкинута на рівні значущості 𝛼 = 0.05.")
+        print()
+        self.pause()
+        print()
 
+        print("Другі обрані дані - довжина аудіозапису.")
+        print("Обрані 100 значень рівномірно.")
+        picker2 = DataPicker(reader.extract_number_column(2, False))
+        general_analyzer2 = GeneralAnalyzer(picker2.pick_even(100))
+        print("Ранжована вибірка:")
+        print(general_analyzer2.get_data_representation_string(10))
+        print()
+
+        print("Знайдені інтервальні параметри.")   
+        general_analyzer2.find_interval_parameters()
+        print(f"Розмах: {general_analyzer2.range}")
+        print(f"Кількість інтервалів: {general_analyzer2.intervals_count}")
+        print(f"Розмір одного інтервалу: {general_analyzer2.interval_size}")
+        print()
+
+        print(f"Таблиця інтервального статистичного розподілу:")
+        general_analyzer2.build_intervals_table()
+        print(general_analyzer2.intervals_table.get_table_representation())
+        print()
+
+        print("Графіки виведені окремо.")
+        general_analyzer2.plot_graphics()
+        general_analyzer2.plots.show()
+        print("Характеристики:")
+        general_analyzer2.find_characteristics()
+        print(f"Середнє: a = {general_analyzer2.average}")
+        print(f"Дисперсія: s² = {general_analyzer2.dispersion}")
+        print(f"Середнє квадратичне відхилення: s = {general_analyzer2.std}")
+        print(f"Моди: {str.join(" ", [f"Mo{i + 1} = {mode}" for i, mode in enumerate(general_analyzer2.modes)])}")
+        print(f"Медіана: Me = {general_analyzer2.median}")
+        print(f"Коефіцієнт варіації: v = {round(general_analyzer2.variation * 100, 2)}%")
+        print()
+
+        print("Висновок:")
+        if general_analyzer2.variation < .1:
+            print("Мінливість вибірки є незначною.")
+        elif general_analyzer2.variation < .25:
+            print("Мінливість вибірки є середньою.")
+        else:
+            print("Мінливість вибірки є значною. Можливі неточності.")
+        print()
+        self.pause()
+        print()
+
+        print("Складемо двовимірну таблицю:")
+        correlation_analyzer = CorrelationAnalyzer(general_analyzer, general_analyzer2)
+        correlation_analyzer.build_2d_table()
+        print(correlation_analyzer.get_table_representation())
 
     def run_manual_scenario(self) -> None:
         self.clear()
