@@ -120,6 +120,7 @@ class App:
         normal_analyzer.find_confidence_intervals(0.95)
         print("Для генерального середнього: [{}, {}]".format(*normal_analyzer.average_confidence_interval))
         print("Для генеральної дисперсії: [{}, {}]".format(*normal_analyzer.dispersion_confidence_interval))
+        print("З йомвірністю 95% середнє та дисперсія опиняться у вказаних вище інтервалах.")
         print()
 
         print("Гіпотеза про значення середнього.")
@@ -143,7 +144,6 @@ class App:
         print("H1: N(a, 𝜎²) -/-> N(75, 49)")
         print("Перевірка відбувається на рівні значущості 𝛼 = 0.05.")
         normal_analyzer.test_for_normal_distribution(75, 49, 0.05)
-        print()
 
         print(f"Гіпотеза H0{" не" if normal_analyzer.is_normal_dist else ""} відкинута на рівні значущості 𝛼 = 0.05.")
         print()
@@ -195,9 +195,54 @@ class App:
         print()
 
         print("Складемо двовимірну таблицю:")
-        correlation_analyzer = CorrelationAnalyzer(general_analyzer, general_analyzer2)
+        correlation_analyzer = CorrelationAnalyzer(general_analyzer2, general_analyzer)
         correlation_analyzer.build_2d_table()
         print(correlation_analyzer.get_table_representation())
+        print()
+
+        print("Рівняння регресії:")
+        correlation_analyzer.find_linear_regressions()
+        print("Y по X: y = {}x {}".format(correlation_analyzer.y_on_x_parameters[0], f"- {-1 * correlation_analyzer.y_on_x_parameters[1]}" if correlation_analyzer.y_on_x_parameters[1] < 0 else f"+ {correlation_analyzer.y_on_x_parameters[1]}"))
+        print("X по Y: y = {}x {}".format(correlation_analyzer.x_on_y_parameters[0], f"- {-1 * correlation_analyzer.x_on_y_parameters[1]}" if correlation_analyzer.x_on_y_parameters[1] < 0 else f"+ {correlation_analyzer.x_on_y_parameters[1]}"))
+        correlation_analyzer.regressions.show()
+        print(f"Коефіцієнт кореляції: {correlation_analyzer.correlation_coeffitient}")
+        print("Величини мають ", end="")
+        if correlation_analyzer.correlation_coeffitient < 0.25:
+            print(" слабкий ", end="")
+        elif correlation_analyzer.correlation_coeffitient < 0.5:
+            print(" середній ", end="")
+        else:
+            print(" тісний ", end="")
+        print(" звʼязок.")
+        print()
+
+        print("Перевіримо гіпотезу H0: звʼязок між сукупностями відсутній на рівні значущості 𝛼 = 0.05:")
+        correlation_analyzer.test_parameters(0.05, 0.95)
+        print(f"Гіпотеза H0 {"відкридається" if correlation_analyzer.hypothesis0_r_rejected else "приймається"}.")
+        print()
+        self.pause()
+        print()
+
+        print("Довірчий інтервал для коефіцієнту кореляції з надійністю 𝜸 = 0.95.")
+        print(f"З ймовірністю 95% коефіцієнт кореляції знаходиться у межах {correlation_analyzer.correlation_coeffitient_range}.")
+        print()
+
+        print("Знайдемо кореляційне відношення та індекс кореляції.")
+        correlation_analyzer.find_correlation_relation()
+        print(f"Кореляційне відношення: {correlation_analyzer.correlation_relation}")
+        print(f"Між величинами {"існує" if correlation_analyzer.correlation_relation > 0.5 else "не існує"} функціональна залежність.")
+        print(f"Індекс кореляції: {correlation_analyzer.correlation_index}")
+        print(f"Варіація змінної Y на {round(math.pow(correlation_analyzer.correlation_index, 2) * 100, 2)}% пояснюється варіацією змінної Х.")
+        print()
+
+        print("Перевіримо значущість параметрів звʼязку з надійністю 𝛼 = 0.05:")
+        correlation_analyzer.test_correlation_relation(0.05)
+        print(f"Кореляційне відношення{"" if correlation_analyzer.correlation_relation_is_significant else " не"} є значущим.")
+        print(f"Індекс кореляції{"" if correlation_analyzer.correlation_index_is_significant else " не"} є значущим.")
+        print()
+
+        print("Кінець роботи програми.")
+        self.pause()
 
     def run_manual_scenario(self) -> None:
         self.clear()

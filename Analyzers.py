@@ -3,7 +3,7 @@ import tabulate as tb
 import matplotlib.pyplot as plt
 from IntervalsTable import IntervalsTable
 from Functions import *
-from scipy.stats import norm, chi2, t as student
+from scipy.stats import norm, chi2, t as student, f as fdist
 
 class GeneralAnalyzer:
     
@@ -110,22 +110,15 @@ class GeneralAnalyzer:
 
     def find_characteristics(self) -> None:
         averages = self.intervals_table.extract_column(2)
-        self.average = round(sum(averages) / self.intervals_count, 10)
         counts = self.intervals_table.extract_column(3)
-        self.dispersion = round(sum([math.pow(averages[i] - self.average, 2) * counts[i] for i in range(len(averages))]) / self.n, 10)
+
+        self.average = round(sum([averages[i] * counts[i] for i in range(self.intervals_count)]) / self.n, 10)
+        self.dispersion = round(sum([math.pow(averages[i] - self.average, 2) * counts[i] for i in range(self.intervals_count)]) / self.n, 10)
         self.std = round(math.sqrt(self.dispersion), 10)
         self.variation = round(self.std / self.average, 10)
 
     def get_concrete_analyzer(self, analyzer_id: int):
         possible_analyzers = [NormalDistAnalyzer]
-        # possible_analyzers_string_ids = ["normal"]
-
-        # if type(analyzer_id) == str:
-        #     if analyzer_id not in possible_analyzers_string_ids:
-        #         return None
-        #     index = possible_analyzers_string_ids.index(analyzer_id.lower())
-        #     analyzer = possible_analyzers[index]()
-        # elif type(analyzer_id) == int:
 
         return possible_analyzers[analyzer_id](self)
 
@@ -254,6 +247,19 @@ class CorrelationAnalyzer:
         self.table_lower: list[list]
         self.table: list[list]
 
+        self.y_on_x_parameters: tuple[float]
+        self.x_on_y_parameters: tuple[float]
+        self.regressions: plt.Figure
+
+        self.hypothesis0_r_rejected: bool
+        self.correlation_coeffitient_range: tuple[float]
+
+        self.correlation_relation: float
+        self.correlation_index: float
+
+        self.correlation_relation_is_significant: bool
+        self.correlation_index_is_significant: bool
+
     def build_2d_table(self) -> None:
         self.table_nij = []
         table1_intervals = self.analyzer1.intervals_table.extract_column(1)
@@ -294,8 +300,8 @@ class CorrelationAnalyzer:
 
         self.table = []
         self.table.append([])
-        for i in range(2):
-            self.table[0].append("v")
+        self.table[0].append("v")
+        self.table[0].append("X")
         for i in range(self.analyzer1.intervals_count):
             self.table[0].append(self.table_upper[0][i])
         for i in range(2):
@@ -336,3 +342,60 @@ class CorrelationAnalyzer:
     
     def get_table_representation(self) -> str:
         return tb.tabulate(self.table, tablefmt="rounded_grid")
+    
+    def find_linear_regressions(self) -> None:
+        averages1 = self.analyzer1.intervals_table.extract_column(2)
+        averages2 = self.analyzer2.intervals_table.extract_column(2)
+
+        xy_sum = 0
+        for i in range(self.analyzer1.intervals_count):
+            for j in range(self.analyzer2.intervals_count):
+                xy_sum += averages1[j] * averages2[i] * self.table_nij[i][j]
+        mu = xy_sum / self.analyzer1.n - self.analyzer1.average * self.analyzer2.average
+        b_yx = mu / self.analyzer1.dispersion
+        b_xy = mu / self.analyzer2.dispersion
+
+        a1, b1 = self.y_on_x_parameters = (b_yx, -b_yx * self.analyzer1.average + self.analyzer2.average)
+        a2, b2 = self.x_on_y_parameters = (b_xy, -b_xy * self.analyzer2.average + self.analyzer1.average)
+        self.y_on_x = lambda x: a1 * x + b1
+        x_on_y = lambda y: a2 * y + b2
+        self.regressions = plt.figure()
+        lines_range = (-500, 501)
+        plt.plot([i for i in range(*lines_range)], [self.y_on_x(i) for i in range(*lines_range)])
+        plt.plot([i for i in range(*lines_range)], [x_on_y(i) for i in range(*lines_range)], color = "red")
+        self.correlation_coeffitient = math.copysign(1.0, mu) * math.sqrt(b_yx * b_xy) 
+
+    def test_parameters(self, alpha, gamma) -> None:
+        coef_criteria = (abs(self.correlation_coeffitient) * math.sqrt(self.analyzer1.n - 2)) / (math.sqrt(1 - math.pow(self.correlation_coeffitient, 2)))
+        coef_critical = student.ppf(1 - alpha / 2, self.analyzer1.n - 2)
+        self.hypothesis0_r_rejected = coef_criteria > coef_critical
+        
+        z = 0.5 * math.log((1 + self.correlation_coeffitient) / (1 - self.correlation_coeffitient))
+        t = inverse_laplace_function(gamma)
+        c = 1 / math.sqrt(self.analyzer1.n - 2)
+
+        mz = lambda z: (math.pow(math.e, z) - math.pow(math.e, -z)) / (math.pow(math.e, z) + math.pow(math.e, -z))
+        self.correlation_coeffitient_range = (mz(z - t * c), mz(z + t * c))
+
+    def find_correlation_relation(self) -> None:
+        averages1 = self.analyzer1.intervals_table.extract_column(2)
+        averages2 = self.analyzer2.intervals_table.extract_column(2)
+        counts1 = self.analyzer1.intervals_table.extract_column(3)
+        intergroup_dispersion = sum([math.pow(averages2[i] - self.analyzer2.average, 2) * counts1[i] for i in range(self.analyzer2.intervals_count)]) / self.analyzer2.n
+        self.correlation_relation = min(math.sqrt(intergroup_dispersion / self.analyzer2.dispersion), 1.0)
+
+        correlation_y = [self.y_on_x(averages1[i]) for i in range(self.analyzer1.intervals_count)]
+        correlation_dispersion = sum([math.pow(correlation_y[i] - self.analyzer2.average, 2) * counts1[i] for i in range(self.analyzer2.intervals_count)]) / self.analyzer2.n
+        self.correlation_index = math.sqrt(correlation_dispersion / self.analyzer2.dispersion)
+    
+    def test_correlation_relation(self, alpha) -> None:
+        if self.correlation_relation != 1.0:
+            f_nu_criteria = math.pow(self.correlation_relation, 2) * (self.analyzer2.n - self.analyzer2.intervals_count) / ((1 - math.pow(self.correlation_relation, 2)) * (self.analyzer2.intervals_count - 1))
+            f_nu_critical = fdist.isf(alpha, self.analyzer2.intervals_count - 1, self.analyzer2.n - self.analyzer2.intervals_count)
+            self.correlation_relation_is_significant = f_nu_criteria > f_nu_critical
+        else:
+            self.correlation_relation_is_significant = True
+
+        f_index_criteria = math.pow(self.correlation_index, 2) * (self.analyzer2.n - 2) / (1 - math.pow(self.correlation_index, 2))
+        f_index_critical = fdist.isf(alpha, 1, self.analyzer2.n - 2)
+        self.correlation_index_is_significant = f_index_criteria > f_index_critical
