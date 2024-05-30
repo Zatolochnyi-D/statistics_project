@@ -62,7 +62,7 @@ class App:
         print("Обрані дані - час роботи алгоритму.")
         print("Обрані 100 значень рівномірно.")
         picker = DataPicker(reader.extract_number_column(1, False))
-        general_analyzer = GeneralAnalyzer(picker.pick_even(100))
+        general_analyzer = GeneralAnalyzer(picker.pick_random(100))
         print("Ранжована вибірка:")
         print(general_analyzer.get_data_representation_string(10))
         print()
