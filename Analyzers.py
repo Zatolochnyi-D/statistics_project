@@ -73,7 +73,7 @@ class GeneralAnalyzer:
                 indexes_of_max.append(i)
         for i, index in enumerate(indexes_of_max):
             x1_1, y1_1 = centers[index] - bar_width / 2, counts[index]
-            if index + 1 < self.n:
+            if index < self.n:
                 x2_1, y2_1 = centers[index + 1] - bar_width / 2, counts[index + 1]
             else:
                x2_1, y2_1 = centers[index] + self.interval_size - bar_width / 2, 0
